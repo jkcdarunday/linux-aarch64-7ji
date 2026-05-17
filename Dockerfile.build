@@ -1,0 +1,18 @@
+FROM ogarcia/archlinux:latest
+
+RUN pacman -Syu --noconfirm && \
+    pacman -S --noconfirm base-devel kmod bc dtc uboot-tools pahole python
+
+RUN useradd -m builder && \
+    echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+USER builder
+WORKDIR /home/builder
+
+COPY --chown=builder:builder . /home/builder/src
+WORKDIR /home/builder/src
+
+RUN makepkg -s --noconfirm
+
+RUN mkdir -p /output && \
+    cp /home/builder/src/**/*.pkg.tar.zst /output/ 2>/dev/null || true
